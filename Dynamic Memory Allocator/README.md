@@ -1,4 +1,4 @@
-# Homework 3 Dynamic Memory Allocator - CSE 320 - Fall 2023
+# Dynamic Memory Allocator - CSE 320 - Fall 2023
 #### Professor Eugene Stark
 
 ### **Due Date: Friday 10/27/2023 @ 11:59pm**
