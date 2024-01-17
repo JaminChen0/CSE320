@@ -11,9 +11,6 @@
 static int is_initialized = 0;
 #define PACK(size, alloc)  ((size) | (alloc))
 
-
-
-
 static size_t max_payload = 0;
 void fix_bug(sf_block *block){
     size_t block_size = block->header & block_size_MASK;
@@ -35,7 +32,6 @@ void fix_bug(sf_block *block){
         (char*)next_next_block  > ((char*)sf_mem_end()-16-next_next_block_size)) {
         return;
     }
-
 
     size_t prev_block_payload = (block->prev_footer & payload_size_MASK)>>32;
     size_t block_payload = (block->header & payload_size_MASK)>>32;
@@ -152,7 +148,6 @@ void remove_block(sf_block *block) {
 sf_block *find_fit(size_t size) {
 
     int index = get_free_list_index(size);
-//printf("size %lu", size);
     sf_block *dummy = &sf_free_list_heads[index];
     sf_block *current_block = dummy->body.links.next;
     //tralversal the list
@@ -169,7 +164,6 @@ sf_block *find_fit(size_t size) {
                 next_block->header &= ~PREV_ALLOC_MASK;
                 next_next_block->prev_footer &= ~PREV_ALLOC_MASK;
                 //////*/
-
                 return current_block;
             }
             current_block = current_block->body.links.next;
@@ -190,11 +184,8 @@ sf_block *find_fit(size_t size) {
         //the block need to reutrn; prev footer don't need to change.
         sf_block* current_block2 = initial_free_block;
 //sf_show_heap();
-//printf("asdas %lu\n", size);
-
         current_block2->header= (current_block2->header & ~block_size_MASK) | size | ALLOC_MASK;
-
-//sf_show_heap();
+        
         //keep doing the initial free block
         new_initial_free_block->header = new_initial_free_block_header;
 
@@ -209,13 +200,10 @@ sf_block *find_fit(size_t size) {
         new_initial_free_block->body.links.next = dummy;
         new_initial_free_block->body.links.prev = dummy;
         dummy->body.links.next = new_initial_free_block;
-
         return current_block2;
     }
-
     return NULL;
 }
-
 
 //extend initial free block after mem_grow
 sf_block *create_block(void *start, size_t size) {
@@ -224,7 +212,6 @@ sf_block *create_block(void *start, size_t size) {
     //new free block's prev foot is already ok in initial heap fucntion, setteing the header now
     block->header = block->header & ~ALLOC_MASK;
     block->header = block->header | size;
-
     // Create the epilogue block.
     sf_block *epilogue = (sf_block*)((char*)sf_mem_end()-16);
     epilogue->prev_footer = block->header;
@@ -240,12 +227,9 @@ sf_block *create_block(void *start, size_t size) {
 }
 //block just come from free list; the real size we need
 void split(sf_block *block, size_t desired_size) {
-    //if (block == NULL) {printf("Block is NULL!\n");}
-
     size_t block_size = (block->header& block_size_MASK);
     if ((block_size - desired_size) >= 32) {
         //allocated smaller block
-
         block->header = (block->header & ~block_size_MASK) | ALLOC_MASK | desired_size;
 
         //bring new block to the free list
@@ -263,29 +247,17 @@ void split(sf_block *block, size_t desired_size) {
 
 //block just come from free list; block size are the atually size we need
 void place(sf_block *block, size_t block_size) {
-    //if (block == NULL) {printf("Block is NULL in place!\n");}
-
     split(block, block_size);
-//printf("1\n");
     //find epilogue and initial free block
     sf_block *epilogue = (sf_block*)((char*)sf_mem_end()-16);
-
     size_t initial_block_size = epilogue->prev_footer & block_size_MASK;
-//printf("2\n");
-
     sf_block *initial_free_block = (sf_block*) ((char*)sf_mem_end() - 16 - initial_block_size);
-
-//printf("asdfsf%p\n", initial_free_block);
-//printf("%lu\n", block->prev_footer);
-//printf("%lu\n", initial_free_block->prev_footer);
 
     //insert block beween free block and the one before free block
     block->prev_footer = initial_free_block->prev_footer;
     size_t payload = (block_size - 16)<<32;
     block->header = (block->header & ~payload_size_MASK) | payload | ALLOC_MASK;
     initial_free_block->prev_footer = block->header;
-
-
 }
 
 //coalesce free block
@@ -301,35 +273,26 @@ sf_block *coalesce(sf_block *block) {
     size_t prev_size = (block->prev_footer & block_size_MASK);
     sf_block* prev_block = (sf_block *)((char *)block - prev_size);
 
-
     //coalescing
     if (prev_alloc && next_alloc) {
-        //printf("11111111111111111111111111\n");
         //sf_show_heap();
         // Case 1: Both allocated
         return block;
     } else if (prev_alloc && !next_alloc) {
         // Case 2: Previous allocated, next free
         //Remove from the free list, then merge, then add to free list
-        //printf("222222222222222222222222\n");
         //sf_show_heap();
         remove_block(next_block);
         remove_block(block);
         size = size + (next_block->header& block_size_MASK);
         block->header = (block->header & ~block_size_MASK) | size;
 
-        ////
         ((sf_block*)((char*)block + size))->prev_footer = block->header;
-        /////
 
         insert_block(block);
         return block;
-        //zen me diu dao wildness, zhe ge hui bei diu dao dao er list
 
     } else if (!prev_alloc && next_alloc) {
-
-        //printf("3\n");
-
         // Case 3: Previous free, next allocated
         remove_block(prev_block);
         remove_block(block);
@@ -341,7 +304,6 @@ sf_block *coalesce(sf_block *block) {
         insert_block(prev_block);
         return prev_block;
     } else {
-        //printf("4\n");
         //sf_show_heap();
         // Case 4: Both free
         //Remove both blocks from the free list, then merge them with the current block
@@ -350,23 +312,18 @@ sf_block *coalesce(sf_block *block) {
         remove_block(next_block);
         remove_block(block);
         prev_block->header = (prev_block->header & ~block_size_MASK) |size;
-        ////
         ((sf_block*)((char*)prev_block + size))->prev_footer = prev_block->header;
-        /////
+
         insert_block(prev_block);
         return prev_block;
     }
-
-
 }
 
-//2 done
 void initialize_heap(void *new_page) {
     sf_block *prologue = (sf_block *)new_page;
     prologue->prev_footer = 0;
     prologue->header = PACK(0, ALLOC_MASK);
     prologue->header |= 32;
-
     sf_block *initial_free_block = (sf_block*)((char*)prologue + 32);
     initial_free_block->prev_footer = prologue->header;
     //prologue + footer + epilogue
@@ -392,9 +349,7 @@ void initialize_heap(void *new_page) {
 
 
 }
-//1
 void *sf_malloc(size_t size) {
-
     if (size == 0) {
         return NULL;
     }
@@ -409,7 +364,6 @@ void *sf_malloc(size_t size) {
         initialize_heap(new_page);
     }
 
-
     size_t block_size = size + 2*8;
     size_t padding = 0;
     if (block_size % 16 != 0) {
@@ -419,19 +373,14 @@ void *sf_malloc(size_t size) {
     if (block_size < 32) {
         block_size = 32;
     }
-    //printf("11111111111111111111111111\n");
     while (size > ((char*)sf_mem_end()- (char*)sf_mem_start() -32-32-16)) {
         void *new_page = sf_mem_grow();
-
         if (new_page == NULL) {
             sf_errno = ENOMEM;
             return NULL;
         }
-
         sf_block* new = create_block(new_page, PAGE_SZ);
-
         coalesce(new);
-
     }
 
     sf_block *block = find_fit(block_size);
@@ -446,7 +395,6 @@ void *sf_malloc(size_t size) {
 
         return block->body.payload;
     }
-
     sf_errno = ENOMEM;
     return NULL;
 }
@@ -454,33 +402,25 @@ void *sf_malloc(size_t size) {
 void sf_free(void *pp) {
     sf_block *block = (sf_block *)((char *)pp - 16);
     size_t block_size = (block->header & block_size_MASK);
-
     if (pp == NULL) {
         //printf("1\n");
         abort();
     }
     if (block_size < 32) {
-        //printf("2\n");
         abort();
     }
     if (block_size % 16 != 0) {
-        //printf("3\n");
         abort();
     }
     if (((char*)block < ((char*)sf_mem_start()+32)) ||
         (char*)block  > ((char*)sf_mem_end()-16-block_size)) {
-        //printf("4\n");
-    //printf("pointer %p\n", block);
-    //printf("%p\n",((char*)sf_mem_start()+32)) ;
         sf_errno = EINVAL;
         abort();
     }
     if ((block->header & ALLOC_MASK) != ALLOC_MASK) {
-        //printf("5\n");
         abort();
     }
     if ((block->header & PREV_ALLOC_MASK) !=  PREV_ALLOC_MASK) {
-        //printf("6\n");
         sf_block *prev_block = (sf_block *)((char *)block - (block->prev_footer & block_size_MASK));
         if ((prev_block->header & ALLOC_MASK) == ALLOC_MASK) {
             abort();
@@ -547,7 +487,6 @@ void *sf_realloc(void *pp, size_t rsize) {
         size_t payload = (new_block->header & payload_size_MASK)>>32;
         max_payload += payload;
         ///
-;
         return new_block;
     }
 
