@@ -1,4 +1,4 @@
-# Homework 5 - CSE 320 - Fall 2023
+#  CSE 320 - Fall 2023
 #### Professor Eugene Stark
 
 ### **Due Date: Friday 12/08/2023 @ 11:59pm**
