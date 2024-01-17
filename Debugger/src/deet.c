@@ -77,8 +77,6 @@ void read_command(char **buffer, size_t *size, int show_prompt) {
         printf("deet> ");
         fflush(stdout);
         }
-        /////////////////////////////////
-        //printf("gasafsdffa");
         if (getline(buffer, size, stdin)== -1) {
             if (errno == EINTR) {
                 clearerr(stdin);
@@ -96,7 +94,6 @@ void read_command(char **buffer, size_t *size, int show_prompt) {
     }
 }
 
-//here has problemmmmmmmmmmmmmmm
 void update_process_status(pid_t pid, PSTATE new_state, int exit_status) {
     for (int i = 0; i < num_processes; i++) {
         if (p[i].pid == pid) {
@@ -158,7 +155,6 @@ void quit() {
         usleep(10000);
     }
 
-
 }
 //control + c
 void handle_sigint(int sig) {
@@ -169,7 +165,6 @@ void handle_sigint(int sig) {
             p[i].state = PSTATE_KILLED;
             log_state_change(p[i].pid, old_state, PSTATE_KILLED, 0);
             p_info(&p[i]);
-
             kill(p[i].pid, SIGKILL);
         }
     }
@@ -258,12 +253,8 @@ void run(char *program, char*const argv[]) {
         p_info(&p[n]);
 
         ptrace(PTRACE_CONT, pid, NULL, NULL);
-        //ptrace(PTRACE_CONT, pid, NULL, NULL);
-
         int status;
         waitpid(pid, &status, WUNTRACED);
-        //printf("gagasjafosaodfjhsaodhfa");
-
         //wait if stop
         if (WIFSTOPPED(status)) {
             p[n].state = PSTATE_STOPPED;
@@ -271,7 +262,6 @@ void run(char *program, char*const argv[]) {
             log_state_change(pid, PSTATE_RUNNING, PSTATE_STOPPED, WSTOPSIG(status));
             p_info(&p[n]);
         }
-
     }
 }
 
@@ -306,7 +296,6 @@ void continue1(int deet_id) {
                 log_error("error continuing with ptrace");
                 return;
             }
-            //printf("ssssaodfjhsaodhfa");
 
             p[i].state = PSTATE_RUNNING;
             log_state_change(p[i].pid, PSTATE_STOPPED, PSTATE_RUNNING, 0);
@@ -314,9 +303,7 @@ void continue1(int deet_id) {
             break;
         }
     }
-
 }
-
 
 void show(char *arg) {
     int specific_id = -1; //default to showing all
@@ -342,7 +329,7 @@ void kill_process(int deet_id) {
                     log_error("error killing process");
                     return;
                 }
-                //PSTATE old_state = p[i].state;  // 保存旧状态
+                //PSTATE old_state = p[i].state;
                 kill(p[i].pid, SIGKILL);
                 //p[i].state = PSTATE_KILLED;
                 //log_state_change(p[i].pid, old_state, PSTATE_KILLED, 0);
@@ -522,9 +509,7 @@ void bt(int deet_id, int max_length) {
 //args[0]=run;  args[1]=echo;  args[2]=a
 //args[0]=release;  args[1]=1
 void execute_command(char *command_line) {
-    //sleep(1);
     command_line[strcspn(command_line, "\n")] = 0;
-
     //char command[256];
     char *args[256];
     int arg_count = 0;
@@ -543,9 +528,7 @@ void execute_command(char *command_line) {
         log_error("No command entered");
         return;
     }
-    //printf("aaaaaaaaaaaaaaaaaaaaaaaaaa%d\n",arg_count);
-    //printf("Command: '%s'\n", args[0]);
-    //sleep(1);
+
     if ((strcmp(args[0], "help\n") == 0)||(strcmp(args[0], "help") == 0)) {
         printf("Available commands:\n");
         printf("help -- Print this help message\n");
@@ -563,7 +546,7 @@ void execute_command(char *command_line) {
 
     } else if ((strcmp(args[0], "quit\n") == 0)||(strcmp(args[0], "quit") == 0)) {
         quit();
-        sleep(3);
+        sleep(0.5);
         log_shutdown();
         exit(EXIT_SUCCESS);
 
