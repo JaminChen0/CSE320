@@ -15,7 +15,6 @@ void *xacto_client_service(void *arg) {
 
     pthread_detach(pthread_self());
     creg_register(client_registry, client_fd);
-
     TRANSACTION *transaction = trans_create();
     if (transaction == NULL) {
         close(client_fd);
@@ -30,11 +29,9 @@ void *xacto_client_service(void *arg) {
             trans_abort(transaction);
             break;
         }
-
         // Convert fields from network byte order to host byte order
         //packet.type = ntohl(packet.type);
         //packet.serial = ntohl(packet.serial);
-
         XACTO_PACKET reply;
         memset(&reply, 0, sizeof(reply));
         reply.type = XACTO_REPLY_PKT;
@@ -51,8 +48,6 @@ void *xacto_client_service(void *arg) {
                     break;
                 }
 
-
-
                 BLOB *key_blob = blob_create(key_data, ntohl(key_packet.size));
                 KEY *key = key_create(key_blob);
                 free(key_data);
@@ -66,17 +61,16 @@ void *xacto_client_service(void *arg) {
                 }
 
                 BLOB *value_blob = blob_create(value_data, ntohl(value_packet.size) );
-                free(value_data); // 释放接收的值数据
+                free(value_data); 
                 TRANS_STATUS status = store_put(transaction, key, value_blob);
                 //blob_unref(value_blob, "PUT operation - unref value blob");
                 key_dispose(key);
 
-
                 XACTO_PACKET reply;
                 memset(&reply, 0, sizeof(reply));
                 reply.type = XACTO_REPLY_PKT;
-                reply.serial = packet.serial; // 使用原始请求的序列号
-                reply.status = status; // 设置状态
+                reply.serial = packet.serial; 
+                reply.status = status; 
                 if (proto_send_packet(client_fd, &reply, NULL) == -1) {
                     trans_abort(transaction);
                 }
@@ -98,51 +92,23 @@ void *xacto_client_service(void *arg) {
                     break;
                 }
 
-
-                //key_packet.size = ntohl(key_packet.size);
-                ///////////////////////////////
-                /*if (key_data == NULL || key_packet.size == 0) {
-                    printf("nulllllllllllllllllllllllllllllllllll3\n");
-                    if(key_data == NULL){
-                        printf("value_data null\n");
-                    }
-                    if(key_packet.size == 0){
-                        printf("value_packet.size null\n");
-                    }
-                }*/
-                /*if (key_data == NULL || key_packet.size == 0 || key_packet.size > MAX_BLOB_SIZE) {
-                    free(key_data);
-                    trans_abort(transaction);
-                    break;
-                }*/
-
-
-
-                // 创建键的 BLOB 和 KEY
                 BLOB *key_blob = blob_create(key_data, ntohl(key_packet.size));
                 KEY *key = key_create(key_blob);
                 //blob_unref(key_blob, "GET operation - unref key blob");
-                free(key_data); // 释放接收的键数据
-
-                // 使用 store_get 函数检索值
+                free(key_data);
                 BLOB *value_blob = NULL;
                 TRANS_STATUS status = store_get(transaction, key, &value_blob);
                 key_dispose(key);
 
-
-
-                // 发送 REPLY 数据包
                 XACTO_PACKET reply;
                 memset(&reply, 0, sizeof(reply));
                 reply.type = XACTO_REPLY_PKT;
-                reply.serial = packet.serial; // 使用原始请求的序列号
-                reply.status = status; // 设置状态
+                reply.serial = packet.serial; 
+                reply.status = status; 
                 if (proto_send_packet(client_fd, &reply, NULL) == -1) {
                     trans_abort(transaction);
                     break;
                 }
-
-                // 如果找到值，发送 VALUE 数据包
                 //if (status == TRANS_PENDING && value_blob != NULL) {
                 if (value_blob != NULL) {
                     if (proto_send_packet(client_fd, &reply, value_blob->content) == -1) {
@@ -150,16 +116,11 @@ void *xacto_client_service(void *arg) {
                         trans_abort(transaction);
                     }
                 }
-
                 if (value_blob != NULL) {
                     //blob_unref(value_blob, "GET operation - unref value blob");
                 }
-
-
-
                 break;
             }
-
             case XACTO_COMMIT_PKT: {
                 debug("Received COMMIT request from client %d", client_fd);
                 reply.status = trans_commit(transaction); // Commit transaction and convert status
@@ -172,7 +133,6 @@ void *xacto_client_service(void *arg) {
                 trans_abort(transaction); // Abort transaction
                 break;
             }
-
         }
 
         // Check the transaction status to decide whether to continue or break the loop
