@@ -1,4 +1,4 @@
-# Homework 2 Debugging and Fixing - CSE 320 - Fall 2023
+# Debugging and Fixing - CSE 320 - Fall 2023
 #### Professor Eugene Stark
 
 ### **Due Date: Friday 10/6/2023 @ 11:59pm**
