@@ -1,4 +1,4 @@
-# Homework 4 Debugger - CSE 320 - Fall 2023
+# Debugger - CSE 320 - Fall 2023
 #### Professor Eugene Stark
 
 ### **Due Date: Friday 11/17/2023 @ 11:59pm**
