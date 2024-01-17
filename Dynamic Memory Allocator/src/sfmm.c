@@ -51,7 +51,6 @@ void fix_bug(sf_block *block){
         next_block->header &= ~PREV_ALLOC_MASK;
         next_next_block->prev_footer &= ~PREV_ALLOC_MASK;
     }
-
 }
 
 //initialzied the free_list
@@ -89,8 +88,6 @@ int get_free_list_index(size_t size) {
 
 //3 insert block to free list
 void insert_block(sf_block *block) {
-
-    /*/////////////////////////////////////////////////////////////////
     //handle the allocated of next block
     size_t block_size = block->header & block_size_MASK;
     sf_block* next_block = (sf_block*)((char*)block + block_size);
@@ -129,7 +126,6 @@ void insert_block(sf_block *block) {
     dummy3->body.links.next = block;
     }
     //sf_show_heap();
-
 }
 //6 remove block from free list
 void remove_block(sf_block *block) {
@@ -143,7 +139,6 @@ void remove_block(sf_block *block) {
     block->body.links.next = NULL;
     block->body.links.prev = NULL;
 }
-
 
 sf_block *find_fit(size_t size) {
 
@@ -499,7 +494,6 @@ void *sf_realloc(void *pp, size_t rsize) {
         return pp;
     }
 }
-
 
 double sf_fragmentation() {
     size_t total_payload = 0;
