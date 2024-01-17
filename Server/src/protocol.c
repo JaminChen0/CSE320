@@ -7,16 +7,12 @@
 #include "debug.h"
 int proto_send_packet(int fd, XACTO_PACKET *pkt, void *data) {
     debug("Calling send packets");
-    //printf("111111111\n");
-    //printf("5##%d##\n", pkt->serial);
     //  uint32_t  need to transfer
-
     /*pkt->size = htonl(pkt->size);
     pkt->serial = htonl(pkt->serial);
     pkt->timestamp_sec = htonl(pkt->timestamp_sec);
     pkt->timestamp_nsec = htonl(pkt->timestamp_nsec);*/
 
-    //printf("6##%d##\n", pkt->serial);
     //head
     ssize_t bytes_sent = write(fd, pkt, sizeof(XACTO_PACKET));
     if (bytes_sent < sizeof(XACTO_PACKET)) {
@@ -45,22 +41,14 @@ int proto_send_packet(int fd, XACTO_PACKET *pkt, void *data) {
 }
 
 int proto_recv_packet(int fd, XACTO_PACKET *pkt, void **datap) {
-
-    //printf("2222222\n");
-    /*if(datap == NULL){
-        printf("%s\n", "nulllllllllllllllllllllllllllll" );
-    }*/
     ssize_t bytes_received = read(fd, pkt, sizeof(XACTO_PACKET));
     if (bytes_received < sizeof(XACTO_PACKET)) {
         return -1;
     }
-
-    //printf("1##%d##\n", pkt->serial);
     pkt->size = ntohl(pkt->size);
     pkt->serial = ntohl(pkt->serial);
     pkt->timestamp_sec = ntohl(pkt->timestamp_sec);
     pkt->timestamp_nsec = ntohl(pkt->timestamp_nsec);
-    //printf("2##%d##\n", pkt->serial);
 
     if (pkt->size > 0 &&datap != NULL) {
         *datap = (void*) malloc(pkt->size);
@@ -79,11 +67,9 @@ int proto_recv_packet(int fd, XACTO_PACKET *pkt, void **datap) {
     /*else {
         datap = NULL;
     }*/
-    //printf("3##%d##\n", pkt->serial);
     pkt->size = htonl(pkt->size);
     pkt->serial = htonl(pkt->serial);
     pkt->timestamp_sec = htonl(pkt->timestamp_sec);
     pkt->timestamp_nsec = htonl(pkt->timestamp_nsec);
-    //printf("4##%d##\n", pkt->serial);
     return 0;
 }
