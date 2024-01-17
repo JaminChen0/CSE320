@@ -16,7 +16,6 @@ void trans_fini(void) {
     pthread_mutex_destroy(&trans_list.mutex);
 }
 TRANSACTION *trans_create(void) {
-    //printf("im here 1\n");
     static int next_id = 0;
     TRANSACTION *tp = malloc(sizeof(TRANSACTION));
     if (tp == NULL) {
@@ -39,17 +38,14 @@ TRANSACTION *trans_create(void) {
     trans_list.next->prev = tp;
     trans_list.next = tp;
     pthread_mutex_unlock(&trans_list.mutex);
-    //printf("im here 1\n");
     return tp;
 }
 
 TRANSACTION *trans_ref(TRANSACTION *tp, char *why) {
-    //printf("im here 2\n");
     pthread_mutex_lock(&tp->mutex);
     tp->refcnt++;
     debug("Increase ref count on transaction %d (%d -> %d) for %s", tp->id, tp->refcnt-1, tp->refcnt, why);
     pthread_mutex_unlock(&tp->mutex);
-    //printf("im here 2\n");
     return tp;
 }
 
@@ -78,9 +74,7 @@ void trans_unref(TRANSACTION *tp, char *why) {
 }
 
 void trans_add_dependency(TRANSACTION *tp, TRANSACTION *dtp) {
-    //printf("im here 4\n");
     pthread_mutex_lock(&tp->mutex);
-
     //check if depend
     for (DEPENDENCY *dep = tp->depends; dep != NULL; dep = dep->next) {
         if (dep->trans == dtp) {
@@ -96,16 +90,12 @@ void trans_add_dependency(TRANSACTION *tp, TRANSACTION *dtp) {
     }
     new_dep->trans = dtp;
     trans_ref(dtp,"Adding dependency");
-
     new_dep->next = tp->depends;
     tp->depends = new_dep;
-
     pthread_mutex_unlock(&tp->mutex);
-    //printf("im here 4\n");
 }
 
 TRANS_STATUS trans_commit(TRANSACTION *tp) {
-    //printf("im here 5\n");
     pthread_mutex_lock(&tp->mutex);
     //assert(tp->status == TRANS_PENDING);
 
@@ -114,9 +104,7 @@ TRANS_STATUS trans_commit(TRANSACTION *tp) {
         pthread_mutex_lock(&dtp->mutex);
         tp->waitcnt++;
         pthread_mutex_unlock(&dtp->mutex);
-
         sem_wait(&dtp->sem);
-
         if (trans_get_status(dtp) == TRANS_ABORTED) {
             pthread_mutex_unlock(&tp->mutex);
             trans_abort(tp);
@@ -126,20 +114,16 @@ TRANS_STATUS trans_commit(TRANSACTION *tp) {
 
     tp->status = TRANS_COMMITTED;
     pthread_mutex_unlock(&tp->mutex);
-
     while (tp->waitcnt > 0) {
         sem_post(&tp->sem);
         tp->waitcnt--;
     }
-
     trans_unref(tp,"Committing transaction");
-    //printf("im here 5\n");
     return TRANS_COMMITTED;
 }
 
 
 TRANS_STATUS trans_abort(TRANSACTION *tp) {
-    //printf("im here 6\n");
     pthread_mutex_lock(&tp->mutex);
     if (tp->status == TRANS_COMMITTED) {
         fprintf(stderr,"Attempt to abort a committed transaction\n");
@@ -152,7 +136,6 @@ TRANS_STATUS trans_abort(TRANSACTION *tp) {
         return TRANS_ABORTED;
     }
 
-
     tp->status = TRANS_ABORTED;
     pthread_mutex_unlock(&tp->mutex);
 
@@ -162,7 +145,6 @@ TRANS_STATUS trans_abort(TRANSACTION *tp) {
     }
 
     trans_unref(tp,"Aborting transaction");
-    //printf("im here 6\n");
     return TRANS_ABORTED;
 }
 
