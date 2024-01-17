@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include <string.h>
 #include "debug.h"
-
 TRANSACTION trans_list;
 
 void trans_init(void) {
@@ -16,8 +15,6 @@ void trans_init(void) {
 void trans_fini(void) {
     pthread_mutex_destroy(&trans_list.mutex);
 }
-
-
 TRANSACTION *trans_create(void) {
     //printf("im here 1\n");
     static int next_id = 0;
@@ -26,7 +23,6 @@ TRANSACTION *trans_create(void) {
         return NULL;
     }
 
-    ////////////////////////////////
     tp->id = next_id++;;
     tp->refcnt = 1;
     tp->status = TRANS_PENDING;
@@ -47,7 +43,6 @@ TRANSACTION *trans_create(void) {
     return tp;
 }
 
-
 TRANSACTION *trans_ref(TRANSACTION *tp, char *why) {
     //printf("im here 2\n");
     pthread_mutex_lock(&tp->mutex);
@@ -58,7 +53,6 @@ TRANSACTION *trans_ref(TRANSACTION *tp, char *why) {
     return tp;
 }
 
-
 void trans_unref(TRANSACTION *tp, char *why) {
     pthread_mutex_lock(&tp->mutex);
     tp->refcnt--;
@@ -67,7 +61,6 @@ void trans_unref(TRANSACTION *tp, char *why) {
         tp->prev->next = tp->next;
         tp->next->prev = tp->prev;
         pthread_mutex_unlock(&trans_list.mutex);
-
         pthread_mutex_unlock(&tp->mutex);
         pthread_mutex_destroy(&tp->mutex);
         sem_destroy(&tp->sem);
@@ -95,7 +88,6 @@ void trans_add_dependency(TRANSACTION *tp, TRANSACTION *dtp) {
             return;
         }
     }
-
 
     DEPENDENCY *new_dep = malloc(sizeof(DEPENDENCY));
     if (new_dep == NULL) {
